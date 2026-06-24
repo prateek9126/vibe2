@@ -1,0 +1,499 @@
+.\mvnw spring-boot:run<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CoPilot - AI Productivity Companion</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Custom Style Sheet -->
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+    <!-- 1. Authentication View -->
+    <div id="auth-view" class="auth-container">
+        <div class="auth-card">
+            <div class="auth-header">
+                <div class="logo">
+                    <span class="logo-icon"><i class="fa-solid fa-brain-circuit"></i></span>
+                    <span class="logo-text">CoPilot.ai</span>
+                </div>
+                <h2>Welcome to your Companion</h2>
+                <p>Maximize your focus and master your schedule with AI</p>
+            </div>
+            
+            <!-- Login Form -->
+            <form id="login-form" class="auth-form">
+                <div class="form-group">
+                    <label for="login-email"><i class="fa-regular fa-envelope"></i> Email Address</label>
+                    <input type="email" id="login-email" placeholder="Enter your email" required>
+                </div>
+                <div class="form-group">
+                    <label for="login-password"><i class="fa-solid fa-lock"></i> Password</label>
+                    <input type="password" id="login-password" placeholder="Enter password" required>
+                </div>
+                <button type="submit" class="btn btn-primary btn-block">Log In <i class="fa-solid fa-arrow-right-to-bracket"></i></button>
+                <p class="auth-switch">Don't have an account? <a href="#" id="switch-to-signup">Sign up</a></p>
+            </form>
+
+            <!-- Signup Form (Hidden initially) -->
+            <form id="signup-form" class="auth-form hidden">
+                <div class="form-group">
+                    <label for="signup-name"><i class="fa-regular fa-user"></i> Full Name</label>
+                    <input type="text" id="signup-name" placeholder="Enter full name" required>
+                </div>
+                <div class="form-group">
+                    <label for="signup-email"><i class="fa-regular fa-envelope"></i> Email Address</label>
+                    <input type="email" id="signup-email" placeholder="Enter your email" required>
+                </div>
+                <div class="form-group">
+                    <label for="signup-password"><i class="fa-solid fa-lock"></i> Password</label>
+                    <input type="password" id="signup-password" placeholder="Enter password" required>
+                </div>
+                <button type="submit" class="btn btn-primary btn-block">Create Account <i class="fa-solid fa-user-plus"></i></button>
+                <p class="auth-switch">Already have an account? <a href="#" id="switch-to-login">Log in</a></p>
+            </form>
+        </div>
+    </div>
+
+    <!-- 2. Main Application Interface -->
+    <div id="app-view" class="app-layout hidden">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar">
+            <div class="sidebar-brand">
+                <span class="logo-icon"><i class="fa-solid fa-brain-circuit"></i></span>
+                <span class="logo-text">CoPilot.ai</span>
+            </div>
+            
+            <div class="user-profile-summary">
+                <div class="avatar"><i class="fa-solid fa-user-astronaut"></i></div>
+                <div class="user-info">
+                    <h4 id="user-display-name">Loading...</h4>
+                    <span class="badge badge-accent">Productive Member</span>
+                </div>
+            </div>
+
+            <nav class="sidebar-nav">
+                <a href="#" class="nav-item active" data-target="dashboard-tab">
+                    <i class="fa-solid fa-chart-line"></i> Dashboard
+                </a>
+                <a href="#" class="nav-item" data-target="tasks-tab">
+                    <i class="fa-solid fa-list-check"></i> Tasks Manager
+                </a>
+                <a href="#" class="nav-item" data-target="calendar-tab">
+                    <i class="fa-solid fa-calendar-days"></i> Calendar Plan
+                </a>
+                <a href="#" class="nav-item" data-target="goals-tab">
+                    <i class="fa-solid fa-bullseye"></i> Goals & Habits
+                </a>
+                <a href="#" class="nav-item" data-target="chatbot-tab">
+                    <i class="fa-solid fa-comments-dollar"></i> AI Chatbot
+                </a>
+            </nav>
+
+            <div class="sidebar-footer">
+                <button id="btn-logout" class="btn btn-outline btn-block">
+                    <i class="fa-solid fa-right-from-bracket"></i> Log Out
+                </button>
+            </div>
+        </aside>
+
+        <!-- Main Workspace -->
+        <main class="main-content">
+            <!-- Header bar -->
+            <header class="app-header">
+                <div class="header-search">
+                    <h1 id="view-title">Dashboard</h1>
+                </div>
+                <div class="header-actions">
+                    <!-- Voice Commands mic button -->
+                    <button id="btn-voice-command" class="btn-icon" title="Listen for voice commands">
+                        <i class="fa-solid fa-microphone"></i>
+                    </button>
+                    <span id="voice-indicator" class="voice-pulse hidden">Listening...</span>
+
+                    <!-- Notification Button & Dropdown -->
+                    <div class="notification-wrapper">
+                        <button id="btn-notifications" class="btn-icon">
+                            <i class="fa-regular fa-bell"></i>
+                            <span id="notification-count" class="badge-count hidden">0</span>
+                        </button>
+                        <div id="notification-dropdown" class="notification-dropdown hidden">
+                            <div class="noti-header">
+                                <h3>Notifications</h3>
+                                <a href="#" id="mark-all-read">Clear All</a>
+                            </div>
+                            <div id="notification-list" class="noti-list">
+                                <p class="empty-noti">No new notifications</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Dynamic Workspace Content Viewports -->
+            <div class="workspace-viewport">
+                
+                <!-- Tab 1: Dashboard -->
+                <div id="dashboard-tab" class="tab-pane active">
+                    <!-- KPI Cards Grid -->
+                    <section class="kpi-grid">
+                        <div class="kpi-card glass">
+                            <div class="kpi-header">
+                                <span>Productivity Score</span>
+                                <i class="fa-solid fa-bolt icon-orange"></i>
+                            </div>
+                            <div class="kpi-value-container">
+                                <div class="circular-progress">
+                                    <div class="value-container" id="kpi-score">70%</div>
+                                </div>
+                            </div>
+                            <p class="kpi-footer">Based on tasks & habits consistency</p>
+                        </div>
+
+                        <div class="kpi-card glass">
+                            <div class="kpi-header">
+                                <span>Tasks Summary</span>
+                                <i class="fa-solid fa-list-check icon-indigo"></i>
+                            </div>
+                            <div class="kpi-value" id="kpi-tasks">0 / 0</div>
+                            <div class="progress-bar-container">
+                                <div class="progress-bar-fill" id="tasks-progress-bar" style="width: 0%"></div>
+                            </div>
+                            <p class="kpi-footer" id="kpi-tasks-pct">0% completed</p>
+                        </div>
+
+                        <div class="kpi-card glass">
+                            <div class="kpi-header">
+                                <span>Active Goals</span>
+                                <i class="fa-solid fa-bullseye icon-blue"></i>
+                            </div>
+                            <div class="kpi-value" id="kpi-goals">0</div>
+                            <p class="kpi-footer">Keep making progress on goals</p>
+                        </div>
+
+                        <div class="kpi-card glass">
+                            <div class="kpi-header">
+                                <span>Habit Streaks</span>
+                                <i class="fa-solid fa-fire icon-red"></i>
+                            </div>
+                            <div class="kpi-value" id="kpi-streaks">0 🔥</div>
+                            <p class="kpi-footer" id="kpi-habits-today">0 completed today</p>
+                        </div>
+                    </section>
+
+                    <!-- Charts & Insights Row -->
+                    <section class="dashboard-details">
+                        <!-- Chart Column -->
+                        <div class="details-card chart-card glass">
+                            <div class="card-header">
+                                <h3><i class="fa-solid fa-chart-simple"></i> Workload Distribution</h3>
+                                <span>Estimated hours / day</span>
+                            </div>
+                            <div class="chart-container">
+                                <canvas id="workloadChart"></canvas>
+                            </div>
+                        </div>
+
+                        <!-- AI Insights Column -->
+                        <div class="details-card insights-card glass">
+                            <div class="card-header">
+                                <h3><i class="fa-solid fa-brain"></i> AI Companion Insights</h3>
+                                <button class="btn btn-small btn-outline" id="btn-refresh-insights"><i class="fa-solid fa-rotate"></i> Refresh</button>
+                            </div>
+                            <div class="insights-list" id="insights-container">
+                                <div class="loading-insights"><i class="fa-solid fa-spinner fa-spin"></i> Generating recommendations...</div>
+                            </div>
+                        </div>
+                    </section>
+                </div>
+
+                <!-- Tab 2: Task Manager -->
+                <div id="tasks-tab" class="tab-pane">
+                    <div class="task-action-bar">
+                        <!-- NLP Smart Input -->
+                        <form id="smart-task-form" class="smart-input-container">
+                            <i class="fa-solid fa-wand-magic-sparkles magic-icon"></i>
+                            <input type="text" id="smart-task-input" placeholder="Smart Add: 'Submit report tomorrow at 5pm priority high category Work workload 3h'..." required>
+                            <button type="submit" class="btn btn-primary">Smart Add</button>
+                        </form>
+                    </div>
+
+                    <div class="task-toolbar">
+                        <!-- Filters -->
+                        <div class="filter-group">
+                            <button class="btn btn-outline active filter-btn" data-category="ALL">All Categories</button>
+                            <button class="btn btn-outline filter-btn" data-category="Work">Work</button>
+                            <button class="btn btn-outline filter-btn" data-category="Personal">Personal</button>
+                            <button class="btn btn-outline filter-btn" data-category="Health">Health</button>
+                            <button class="btn btn-outline filter-btn" data-category="Finance">Finance</button>
+                        </div>
+
+                        <!-- AI Optimization Triggers -->
+                        <div class="action-group">
+                            <button class="btn btn-accent" id="btn-ai-prioritize">
+                                <i class="fa-solid fa-arrow-down-9-1"></i> AI Prioritize
+                            </button>
+                            <button class="btn btn-outline" id="btn-open-task-modal">
+                                <i class="fa-solid fa-plus"></i> New Task
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Kanban Board -->
+                    <div class="kanban-board">
+                        <!-- To Do -->
+                        <div class="kanban-column" id="col-todo">
+                            <div class="column-header">
+                                <h3>To Do</h3>
+                                <span class="badge" id="count-todo">0</span>
+                            </div>
+                            <div class="task-list" id="list-todo"></div>
+                        </div>
+
+                        <!-- In Progress -->
+                        <div class="kanban-column" id="col-progress">
+                            <div class="column-header">
+                                <h3>In Progress</h3>
+                                <span class="badge badge-accent" id="count-progress">0</span>
+                            </div>
+                            <div class="task-list" id="list-progress"></div>
+                        </div>
+
+                        <!-- Completed -->
+                        <div class="kanban-column" id="col-completed">
+                            <div class="column-header">
+                                <h3>Completed</h3>
+                                <span class="badge badge-success" id="count-completed">0</span>
+                            </div>
+                            <div class="task-list" id="list-completed"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tab 3: Calendar -->
+                <div id="calendar-tab" class="tab-pane">
+                    <div class="calendar-toolbar">
+                        <div class="calendar-meta">
+                            <h2 id="calendar-month-name">Calendar View</h2>
+                        </div>
+                        <button class="btn btn-accent" id="btn-ai-schedule">
+                            <i class="fa-solid fa-calendar-check"></i> AI Smart Schedule
+                        </button>
+                    </div>
+                    <div class="calendar-card glass">
+                        <!-- Calendar Grid -->
+                        <div class="calendar-grid-header">
+                            <div>Mon</div><div>Tue</div><div>Wed</div><div>Thu</div><div>Fri</div><div>Sat</div><div>Sun</div>
+                        </div>
+                        <div class="calendar-grid-body" id="calendar-days-grid">
+                            <!-- Injected dynamically by JS -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tab 4: Goals & Habits -->
+                <div id="goals-tab" class="tab-pane">
+                    <div class="goals-habits-layout">
+                        <!-- Goals Section -->
+                        <div class="goals-section glass">
+                            <div class="section-header">
+                                <h3><i class="fa-solid fa-bullseye"></i> Goal Tracking</h3>
+                                <button class="btn btn-primary btn-small" id="btn-add-goal-modal"><i class="fa-solid fa-plus"></i> New Goal</button>
+                            </div>
+                            <div class="goals-list" id="goals-container">
+                                <!-- Injected by JS -->
+                            </div>
+                        </div>
+
+                        <!-- Habits Section -->
+                        <div class="habits-section glass">
+                            <div class="section-header">
+                                <h3><i class="fa-solid fa-fire"></i> Habit Tracker</h3>
+                                <button class="btn btn-primary btn-small" id="btn-add-habit-modal"><i class="fa-solid fa-plus"></i> New Habit</button>
+                            </div>
+                            <div class="habits-list" id="habits-container">
+                                <!-- Injected by JS -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tab 5: AI Chatbot -->
+                <div id="chatbot-tab" class="tab-pane">
+                    <div class="chatbot-container glass">
+                        <!-- Chat Header -->
+                        <div class="chat-header">
+                            <div class="chat-avatar"><i class="fa-solid fa-robot"></i></div>
+                            <div class="chat-title">
+                                <h3>Productivity Assistant</h3>
+                                <span>Online | Smart AI Actions</span>
+                            </div>
+                        </div>
+
+                        <!-- Chat Messages -->
+                        <div class="chat-messages" id="chat-messages-container">
+                            <div class="chat-bubble ai">
+                                <p>Hello! I am your AI Productivity Companion. I can parse natural language to add tasks, optimize your schedule, prioritize your lists, or give you workload analytics. Try asking me "prioritize my tasks" or "what should I do next?".</p>
+                                <span class="chat-time">Just Now</span>
+                            </div>
+                        </div>
+
+                        <!-- Chat Quick Prompts -->
+                        <div class="chat-quick-suggestions">
+                            <button class="suggestion-btn" data-query="Prioritize my tasks"><i class="fa-solid fa-arrow-down-9-1"></i> Prioritize Tasks</button>
+                            <button class="suggestion-btn" data-query="Schedule my day"><i class="fa-solid fa-calendar-check"></i> Auto-Schedule</button>
+                            <button class="suggestion-btn" data-query="Give me a workload report"><i class="fa-solid fa-chart-pie"></i> Workload Analysis</button>
+                            <button class="suggestion-btn" data-query="What is my score today?"><i class="fa-solid fa-bolt"></i> Productivity Score</button>
+                        </div>
+
+                        <!-- Chat Input -->
+                        <form id="chat-input-form" class="chat-input-area">
+                            <input type="text" id="chat-input-field" placeholder="Ask CoPilot something..." required>
+                            <button type="submit" class="btn btn-primary"><i class="fa-solid fa-paper-plane"></i></button>
+                        </form>
+                    </div>
+                </div>
+
+            </div>
+        </main>
+    </div>
+
+    <!-- 3. Modal: Add/Edit Task -->
+    <div id="task-modal" class="modal hidden">
+        <div class="modal-content glass">
+            <div class="modal-header">
+                <h3 id="task-modal-title">New Task</h3>
+                <span class="close-modal" id="btn-close-task-modal">&times;</span>
+            </div>
+            <form id="task-modal-form">
+                <input type="hidden" id="task-edit-id">
+                <div class="form-group">
+                    <label for="task-title">Title</label>
+                    <input type="text" id="task-title" required placeholder="Task title">
+                </div>
+                <div class="form-group">
+                    <label for="task-desc">Description</label>
+                    <textarea id="task-desc" placeholder="Task description..."></textarea>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="task-priority">Priority</label>
+                        <select id="task-priority">
+                            <option value="LOW">Low</option>
+                            <option value="MEDIUM" selected>Medium</option>
+                            <option value="HIGH">High</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="task-category">Category</label>
+                        <select id="task-category">
+                            <option value="Work">Work</option>
+                            <option value="Personal">Personal</option>
+                            <option value="Health">Health</option>
+                            <option value="Finance">Finance</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="task-due">Due Date</label>
+                        <input type="datetime-local" id="task-due" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="task-workload">Workload (Hours)</label>
+                        <input type="number" id="task-workload" step="0.5" min="0.5" value="1.0">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="task-status">Status</label>
+                    <select id="task-status">
+                        <option value="TODO">To Do</option>
+                        <option value="IN_PROGRESS">In Progress</option>
+                        <option value="COMPLETED">Completed</option>
+                    </select>
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="btn btn-outline" id="btn-cancel-task">Cancel</button>
+                    <button type="submit" class="btn btn-primary" id="btn-save-task">Save Task</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- 4. Modal: Add Goal -->
+    <div id="goal-modal" class="modal hidden">
+        <div class="modal-content glass">
+            <div class="modal-header">
+                <h3>Create Goal</h3>
+                <span class="close-modal" id="btn-close-goal-modal">&times;</span>
+            </div>
+            <form id="goal-form">
+                <div class="form-group">
+                    <label for="goal-title">Goal Title</label>
+                    <input type="text" id="goal-title" required placeholder="e.g. Read Books, Gym Session">
+                </div>
+                <div class="form-group">
+                    <label for="goal-desc">Description</label>
+                    <textarea id="goal-desc" placeholder="Goal details..."></textarea>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="goal-target">Target Value</label>
+                        <input type="number" id="goal-target" min="1" value="10">
+                    </div>
+                    <div class="form-group">
+                        <label for="goal-unit">Unit</label>
+                        <input type="text" id="goal-unit" placeholder="e.g. books, hours, times" value="times">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="goal-due">Target Completion Date</label>
+                    <input type="datetime-local" id="goal-due" required>
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="btn btn-outline" id="btn-cancel-goal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save Goal</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- 5. Modal: Add Habit -->
+    <div id="habit-modal" class="modal hidden">
+        <div class="modal-content glass">
+            <div class="modal-header">
+                <h3>Create Habit</h3>
+                <span class="close-modal" id="btn-close-habit-modal">&times;</span>
+            </div>
+            <form id="habit-form">
+                <div class="form-group">
+                    <label for="habit-name">Habit Name</label>
+                    <input type="text" id="habit-name" required placeholder="e.g. Drink 3L Water, Meditate">
+                </div>
+                <div class="form-group">
+                    <label for="habit-freq">Frequency</label>
+                    <select id="habit-freq">
+                        <option value="Daily" selected>Daily</option>
+                        <option value="Weekly">Weekly</option>
+                    </select>
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="btn btn-outline" id="btn-cancel-habit">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save Habit</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Client Application Logic -->
+    <script src="app.js"></script>
+</body>
+</html>
