@@ -21,6 +21,11 @@ public class AuthController {
 
     @PostMapping("/register")
     public ResponseEntity<?> register(@RequestBody Map<String, String> body, HttpSession session) {
+        // Temporarily bypass registration: return default demo user
+        User user = userService.getOrCreateDefaultUser();
+        session.setAttribute("userId", user.getId());
+        return ResponseEntity.ok(user);
+        /*
         String username = body.get("username");
         String password = body.get("password");
         String fullName = body.get("fullName");
@@ -36,10 +41,17 @@ public class AuthController {
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("error", e.getMessage()));
         }
+        */
     }
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody Map<String, String> body, HttpSession session) {
+        // Temporarily bypass login: return default demo user
+        User user = userService.getOrCreateDefaultUser();
+        session.setAttribute("userId", user.getId());
+        userService.calculateProductivityScore(user);
+        return ResponseEntity.ok(user);
+        /*
         String username = body.get("username");
         String password = body.get("password");
 
@@ -57,16 +69,26 @@ public class AuthController {
         } else {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("error", "Invalid username or password"));
         }
+        */
     }
 
     @PostMapping("/logout")
     public ResponseEntity<?> logout(HttpSession session) {
+        // In demo mode, logout is disabled or does nothing
+        return ResponseEntity.ok(Map.of("message", "Logout disabled in demo mode"));
+        /*
         session.invalidate();
         return ResponseEntity.ok(Map.of("message", "Logged out successfully"));
+        */
     }
 
     @GetMapping("/me")
     public ResponseEntity<?> getCurrentUser(HttpSession session) {
+        // Temporarily bypass authentication: return default user
+        User user = userService.getOrCreateDefaultUser();
+        userService.calculateProductivityScore(user);
+        return ResponseEntity.ok(user);
+        /*
         Long userId = (Long) session.getAttribute("userId");
         if (userId == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("error", "Not authenticated"));
@@ -81,5 +103,6 @@ public class AuthController {
         // recalculate score on profile fetch to make sure it's accurate
         userService.calculateProductivityScore(user);
         return ResponseEntity.ok(user);
+        */
     }
 }

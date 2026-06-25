@@ -23,9 +23,13 @@ public class AIController {
     private UserService userService;
 
     private User getAuthenticatedUser(HttpSession session) {
+        // Temporarily bypass session check for demo mode
+        return userService.getOrCreateDefaultUser();
+        /*
         Long userId = (Long) session.getAttribute("userId");
         if (userId == null) return null;
         return userService.getUserById(userId);
+        */
     }
 
     @PostMapping("/chat")

@@ -1,6 +1,6 @@
 // Automatically point API calls to port 8080 if served from a different port (like Live Server)
 (function() {
-    const API_BASE = (window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') || window.location.port === '8080' ? '' : 'http://localhost:8080';
+    const API_BASE = (window.location.hostname === 'localhost' || window.location.hostname.startsWith('127.')) && window.location.port !== '8080' ? window.location.protocol + '//' + window.location.hostname + ':' + '8080' : '';
     const originalFetch = window.fetch;
     window.fetch = function(url, options) {
         if (typeof url === 'string' && url.startsWith('/api/')) {
@@ -132,6 +132,21 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // Session check
 async function checkSession() {
+    // Temporarily bypass authentication: default to Demo User immediately
+    state.user = { fullName: "Demo User", username: "demo" };
+    showAppView();
+
+    // Asynchronously fetch current user info from backend to sync details
+    try {
+        const res = await fetch('/api/auth/me');
+        if (res.ok) {
+            state.user = await res.json();
+            elements.userDisplayName.textContent = state.user.fullName;
+        }
+    } catch (e) {
+        console.error("Session check offline, using local fallback", e);
+    }
+    /*
     try {
         const res = await fetch('/api/auth/me');
         if (res.ok) {
@@ -144,6 +159,7 @@ async function checkSession() {
         console.error("Session check offline", e);
         showAuthView();
     }
+    */
 }
 
 // 4. Auth Controllers
@@ -431,7 +447,9 @@ function setupEventListeners() {
     });
 
     // Log Out Button Click
-    elements.btnLogout.addEventListener('click', async () => {
+    elements.btnLogout.addEventListener('click', () => {
+        alert("Logout functionality is disabled in demo mode.");
+        /*
         try {
             await fetch('/api/auth/logout', { method: 'POST' });
             state.user = null;
@@ -440,6 +458,7 @@ function setupEventListeners() {
             console.error("Logout failed", e);
             showAuthView();
         }
+        */
     });
 
     // Voice Commands integration

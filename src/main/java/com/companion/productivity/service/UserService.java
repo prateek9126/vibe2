@@ -48,6 +48,15 @@ public class UserService {
         return userRepository.findById(id).orElse(null);
     }
 
+    public User getOrCreateDefaultUser() {
+        Optional<User> defaultUserOpt = userRepository.findByUsername("demo");
+        if (defaultUserOpt.isPresent()) {
+            return defaultUserOpt.get();
+        }
+        User defaultUser = new User("demo", hashPassword("demo123"), "Demo User");
+        return userRepository.save(defaultUser);
+    }
+
     public User saveUser(User user) {
         return userRepository.save(user);
     }

@@ -17,7 +17,7 @@
 </head>
 <body>
 
-    <!-- 1. Authentication View -->
+    <!-- 1. Authentication View (Temporarily Commented Out/Disabled for Demo Mode)
     <div id="auth-view" class="auth-container">
         <div class="auth-card">
             <div class="auth-header">
@@ -29,7 +29,6 @@
                 <p>Maximize your focus and master your schedule with AI</p>
             </div>
             
-            <!-- Login Form -->
             <form id="login-form" class="auth-form">
                 <div class="form-group">
                     <label for="login-email"><i class="fa-regular fa-envelope"></i> Email Address</label>
@@ -43,7 +42,6 @@
                 <p class="auth-switch">Don't have an account? <a href="#" id="switch-to-signup">Sign up</a></p>
             </form>
 
-            <!-- Signup Form (Hidden initially) -->
             <form id="signup-form" class="auth-form hidden">
                 <div class="form-group">
                     <label for="signup-name"><i class="fa-regular fa-user"></i> Full Name</label>
@@ -62,9 +60,10 @@
             </form>
         </div>
     </div>
+    -->
 
     <!-- 2. Main Application Interface -->
-    <div id="app-view" class="app-layout hidden">
+    <div id="app-view" class="app-layout">
         <!-- Sidebar Navigation -->
         <aside class="sidebar">
             <div class="sidebar-brand">
@@ -494,6 +493,6 @@
     </div>
 
     <!-- Client Application Logic -->
-    <script src="app.js"></script>
+    <script src="app.js?v=1.1"></script>
 </body>
 </html>
