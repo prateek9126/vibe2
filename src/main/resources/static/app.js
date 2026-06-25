@@ -126,10 +126,13 @@ const elements = {
 
 // 3. Initialization
 document.addEventListener('DOMContentLoaded', () => {
-    checkSession();
+    // Start directly on the dashboard in demo mode
+    state.user = { fullName: "Demo User", username: "demo" };
+    showAppView();
     setupEventListeners();
 });
 
+/*
 // Session check
 async function checkSession() {
     // Temporarily bypass authentication: default to Demo User immediately
@@ -141,25 +144,13 @@ async function checkSession() {
         const res = await fetch('/api/auth/me');
         if (res.ok) {
             state.user = await res.json();
-            elements.userDisplayName.textContent = state.user.fullName;
+            if (elements.userDisplayName) {
+                elements.userDisplayName.textContent = state.user.fullName;
+            }
         }
     } catch (e) {
         console.error("Session check offline, using local fallback", e);
     }
-    /*
-    try {
-        const res = await fetch('/api/auth/me');
-        if (res.ok) {
-            state.user = await res.json();
-            showAppView();
-        } else {
-            showAuthView();
-        }
-    } catch (e) {
-        console.error("Session check offline", e);
-        showAuthView();
-    }
-    */
 }
 
 // 4. Auth Controllers
@@ -226,16 +217,19 @@ elements.signupForm.addEventListener('submit', async (e) => {
         alert('An error occurred during signup');
     }
 });
+*/
 
 function showAuthView() {
-    elements.appView.classList.add('hidden');
-    elements.authView.classList.remove('hidden');
+    if (elements.appView) elements.appView.classList.add('hidden');
+    if (elements.authView) elements.authView.classList.remove('hidden');
 }
 
 function showAppView() {
-    elements.authView.classList.add('hidden');
-    elements.appView.classList.remove('hidden');
-    elements.userDisplayName.textContent = state.user.fullName;
+    if (elements.authView) elements.authView.classList.add('hidden');
+    if (elements.appView) elements.appView.classList.remove('hidden');
+    if (elements.userDisplayName && state.user) {
+        elements.userDisplayName.textContent = state.user.fullName;
+    }
     loadAppData();
 }
 
@@ -302,164 +296,212 @@ async function fetchReport() {
 }
 
 // 6. Navigation Tabs
-elements.navItems.forEach(item => {
-    item.addEventListener('click', (e) => {
-        e.preventDefault();
-        const target = item.getAttribute('data-target');
-        
-        elements.navItems.forEach(i => i.classList.remove('active'));
-        item.classList.add('active');
+if (elements.navItems) {
+    elements.navItems.forEach(item => {
+        item.addEventListener('click', (e) => {
+            e.preventDefault();
+            const target = item.getAttribute('data-target');
+            
+            elements.navItems.forEach(i => i.classList.remove('active'));
+            item.classList.add('active');
 
-        elements.tabPanes.forEach(pane => {
-            pane.classList.remove('active');
-            if (pane.id === target) pane.classList.add('active');
+            if (elements.tabPanes) {
+                elements.tabPanes.forEach(pane => {
+                    pane.classList.remove('active');
+                    if (pane.id === target) pane.classList.add('active');
+                });
+            }
+
+            state.activeTab = target;
+            if (elements.viewTitle) {
+                elements.viewTitle.textContent = item.textContent.trim();
+            }
+            
+            // Refresh target tabs
+            if (target === 'calendar-tab') renderCalendar();
+            if (target === 'goals-tab') {
+                renderGoals();
+                renderHabits();
+            }
         });
-
-        state.activeTab = target;
-        elements.viewTitle.textContent = item.textContent.trim();
-        
-        // Refresh target tabs
-        if (target === 'calendar-tab') renderCalendar();
-        if (target === 'goals-tab') {
-            renderGoals();
-            renderHabits();
-        }
     });
-});
+}
 
 // 7. Event Listeners Setup
 function setupEventListeners() {
     // Notifications trigger
-    elements.btnNotifications.addEventListener('click', (e) => {
-        e.stopPropagation();
-        elements.notificationDropdown.classList.toggle('hidden');
-    });
+    if (elements.btnNotifications) {
+        elements.btnNotifications.addEventListener('click', (e) => {
+            e.stopPropagation();
+            if (elements.notificationDropdown) {
+                elements.notificationDropdown.classList.toggle('hidden');
+            }
+        });
+    }
 
     document.addEventListener('click', () => {
-        elements.notificationDropdown.classList.add('hidden');
+        if (elements.notificationDropdown) {
+            elements.notificationDropdown.classList.add('hidden');
+        }
     });
 
-    elements.notificationDropdown.addEventListener('click', (e) => {
-        e.stopPropagation();
-    });
+    if (elements.notificationDropdown) {
+        elements.notificationDropdown.addEventListener('click', (e) => {
+            e.stopPropagation();
+        });
+    }
 
-    elements.markAllRead.addEventListener('click', (e) => {
-        e.preventDefault();
-        state.notifications = [];
-        renderNotifications();
-    });
+    if (elements.markAllRead) {
+        elements.markAllRead.addEventListener('click', (e) => {
+            e.preventDefault();
+            state.notifications = [];
+            renderNotifications();
+        });
+    }
 
     // Refresh insights button
-    elements.btnRefreshInsights.addEventListener('click', () => {
-        elements.insightsContainer.innerHTML = '<div class="loading-insights"><i class="fa-solid fa-spinner fa-spin"></i> Generating recommendations...</div>';
-        fetchInsights();
-    });
+    if (elements.btnRefreshInsights) {
+        elements.btnRefreshInsights.addEventListener('click', () => {
+            if (elements.insightsContainer) {
+                elements.insightsContainer.innerHTML = '<div class="loading-insights"><i class="fa-solid fa-spinner fa-spin"></i> Generating recommendations...</div>';
+            }
+            fetchInsights();
+        });
+    }
 
     // Filters for tasks
-    elements.filterBtns.forEach(btn => {
-        btn.addEventListener('click', () => {
-            elements.filterBtns.forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
-            state.activeCategoryFilter = btn.getAttribute('data-category');
-            renderTasks();
+    if (elements.filterBtns) {
+        elements.filterBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                elements.filterBtns.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                state.activeCategoryFilter = btn.getAttribute('data-category');
+                renderTasks();
+            });
         });
-    });
+    }
 
     // AI prioritize task button
-    elements.btnAiPrioritize.addEventListener('click', async () => {
-        elements.btnAiPrioritize.disabled = true;
-        elements.btnAiPrioritize.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Analyzing...';
-        const res = await fetch('/api/tasks/prioritize', { method: 'POST' });
-        if (res.ok) {
-            state.tasks = await res.json();
-            pushLocalNotification("AI prioritization ran successfully. Tasks sorted by urgency score.", "AI_INSIGHT");
-            loadAppData();
-        }
-        elements.btnAiPrioritize.disabled = false;
-        elements.btnAiPrioritize.innerHTML = '<i class="fa-solid fa-arrow-down-9-1"></i> AI Prioritize';
-    });
+    if (elements.btnAiPrioritize) {
+        elements.btnAiPrioritize.addEventListener('click', async () => {
+            elements.btnAiPrioritize.disabled = true;
+            elements.btnAiPrioritize.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Analyzing...';
+            const res = await fetch('/api/tasks/prioritize', { method: 'POST' });
+            if (res.ok) {
+                state.tasks = await res.json();
+                pushLocalNotification("AI prioritization ran successfully. Tasks sorted by urgency score.", "AI_INSIGHT");
+                loadAppData();
+            }
+            elements.btnAiPrioritize.disabled = false;
+            elements.btnAiPrioritize.innerHTML = '<i class="fa-solid fa-arrow-down-9-1"></i> AI Prioritize';
+        });
+    }
 
     // NLP Smart Add Task
-    elements.smartTaskForm.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const text = elements.smartTaskInput.value;
-        elements.smartTaskInput.value = '';
+    if (elements.smartTaskForm) {
+        elements.smartTaskForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            if (elements.smartTaskInput) {
+                const text = elements.smartTaskInput.value;
+                elements.smartTaskInput.value = '';
 
-        try {
-            const res = await fetch('/api/tasks', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ nlpText: text })
-            });
-            if (res.ok) {
-                const newTask = await res.json();
-                pushLocalNotification(`AI added task: "${newTask.title}" via NLP parsing.`, "INFO");
-                loadAppData();
-            } else {
-                alert("Could not parse task");
+                try {
+                    const res = await fetch('/api/tasks', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ nlpText: text })
+                    });
+                    if (res.ok) {
+                        const newTask = await res.json();
+                        pushLocalNotification(`AI added task: "${newTask.title}" via NLP parsing.`, "INFO");
+                        loadAppData();
+                    } else {
+                        alert("Could not parse task");
+                    }
+                } catch (e) {
+                    console.error(e);
+                }
             }
-        } catch (e) {
-            console.error(e);
-        }
-    });
+        });
+    }
 
     // AI schedule button
-    elements.btnAiSchedule.addEventListener('click', async () => {
-        elements.btnAiSchedule.disabled = true;
-        elements.btnAiSchedule.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Optimizing...';
-        const res = await fetch('/api/tasks/schedule', { method: 'POST' });
-        if (res.ok) {
-            state.tasks = await res.json();
-            pushLocalNotification("AI Scheduling optimized! Task dates adjusted to fit workload.", "AI_INSIGHT");
-            loadAppData();
-            renderCalendar();
-        }
-        elements.btnAiSchedule.disabled = false;
-        elements.btnAiSchedule.innerHTML = '<i class="fa-solid fa-calendar-check"></i> AI Smart Schedule';
-    });
+    if (elements.btnAiSchedule) {
+        elements.btnAiSchedule.addEventListener('click', async () => {
+            elements.btnAiSchedule.disabled = true;
+            elements.btnAiSchedule.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Optimizing...';
+            const res = await fetch('/api/tasks/schedule', { method: 'POST' });
+            if (res.ok) {
+                state.tasks = await res.json();
+                pushLocalNotification("AI Scheduling optimized! Task dates adjusted to fit workload.", "AI_INSIGHT");
+                loadAppData();
+                renderCalendar();
+            }
+            elements.btnAiSchedule.disabled = false;
+            elements.btnAiSchedule.innerHTML = '<i class="fa-solid fa-calendar-check"></i> AI Smart Schedule';
+        });
+    }
 
     // Modals visibility logic
     // Task modal
-    elements.btnOpenTaskModal.addEventListener('click', () => openTaskModal());
-    elements.btnCloseTaskModal.addEventListener('click', () => closeTaskModal());
-    elements.btnCancelTask.addEventListener('click', () => closeTaskModal());
-    elements.taskModalForm.addEventListener('submit', handleTaskFormSubmit);
+    if (elements.btnOpenTaskModal) elements.btnOpenTaskModal.addEventListener('click', () => openTaskModal());
+    if (elements.btnCloseTaskModal) elements.btnCloseTaskModal.addEventListener('click', () => closeTaskModal());
+    if (elements.btnCancelTask) elements.btnCancelTask.addEventListener('click', () => closeTaskModal());
+    if (elements.taskModalForm) elements.taskModalForm.addEventListener('submit', handleTaskFormSubmit);
 
     // Goal modal
-    elements.btnAddGoalModal.addEventListener('click', () => elements.goalModal.classList.remove('hidden'));
-    elements.btnCloseGoalModal.addEventListener('click', () => elements.goalModal.classList.add('hidden'));
-    elements.btnCancelGoal.addEventListener('click', () => elements.goalModal.classList.add('hidden'));
-    elements.goalForm.addEventListener('submit', handleGoalFormSubmit);
+    if (elements.btnAddGoalModal) {
+        elements.btnAddGoalModal.addEventListener('click', () => {
+            if (elements.goalModal) elements.goalModal.classList.remove('hidden');
+        });
+    }
+    if (elements.btnCloseGoalModal) {
+        elements.btnCloseGoalModal.addEventListener('click', () => {
+            if (elements.goalModal) elements.goalModal.classList.add('hidden');
+        });
+    }
+    if (elements.btnCancelGoal) {
+        elements.btnCancelGoal.addEventListener('click', () => {
+            if (elements.goalModal) elements.goalModal.classList.add('hidden');
+        });
+    }
+    if (elements.goalForm) elements.goalForm.addEventListener('submit', handleGoalFormSubmit);
 
     // Habit modal
-    elements.btnAddHabitModal.addEventListener('click', () => elements.habitModal.classList.remove('hidden'));
-    elements.btnCloseHabitModal.addEventListener('click', () => elements.habitModal.classList.add('hidden'));
-    elements.btnCancelHabit.addEventListener('click', () => elements.habitModal.classList.add('hidden'));
-    elements.habitForm.addEventListener('submit', handleHabitFormSubmit);
+    if (elements.btnAddHabitModal) {
+        elements.btnAddHabitModal.addEventListener('click', () => {
+            if (elements.habitModal) elements.habitModal.classList.remove('hidden');
+        });
+    }
+    if (elements.btnCloseHabitModal) {
+        elements.btnCloseHabitModal.addEventListener('click', () => {
+            if (elements.habitModal) elements.habitModal.classList.add('hidden');
+        });
+    }
+    if (elements.btnCancelHabit) {
+        elements.btnCancelHabit.addEventListener('click', () => {
+            if (elements.habitModal) elements.habitModal.classList.add('hidden');
+        });
+    }
+    if (elements.habitForm) elements.habitForm.addEventListener('submit', handleHabitFormSubmit);
 
     // Chatbot query
-    elements.chatInputForm.addEventListener('submit', handleChatbotSubmit);
-    elements.suggestionBtns.forEach(btn => {
-        btn.addEventListener('click', () => {
-            const query = btn.getAttribute('data-query');
-            sendChatbotQuery(query);
+    if (elements.chatInputForm) elements.chatInputForm.addEventListener('submit', handleChatbotSubmit);
+    if (elements.suggestionBtns) {
+        elements.suggestionBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                const query = btn.getAttribute('data-query');
+                sendChatbotQuery(query);
+            });
         });
-    });
+    }
 
     // Log Out Button Click
-    elements.btnLogout.addEventListener('click', () => {
-        alert("Logout functionality is disabled in demo mode.");
-        /*
-        try {
-            await fetch('/api/auth/logout', { method: 'POST' });
-            state.user = null;
-            showAuthView();
-        } catch (e) {
-            console.error("Logout failed", e);
-            showAuthView();
-        }
-        */
-    });
+    if (elements.btnLogout) {
+        elements.btnLogout.addEventListener('click', () => {
+            alert("Logout functionality is disabled in demo mode.");
+        });
+    }
 
     // Voice Commands integration
     setupVoiceCommands();
@@ -469,7 +511,9 @@ function setupEventListeners() {
 function setupVoiceCommands() {
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (!SpeechRecognition) {
-        elements.btnVoiceCommand.style.display = 'none';
+        if (elements.btnVoiceCommand) {
+            elements.btnVoiceCommand.style.display = 'none';
+        }
         return;
     }
 
@@ -479,16 +523,22 @@ function setupVoiceCommands() {
     recognition.interimResults = false;
     recognition.maxAlternatives = 1;
 
-    elements.btnVoiceCommand.addEventListener('click', () => {
-        elements.btnVoiceCommand.classList.toggle('active');
-        if (elements.btnVoiceCommand.classList.contains('active')) {
-            elements.voiceIndicator.classList.remove('hidden');
-            recognition.start();
-        } else {
-            elements.voiceIndicator.classList.add('hidden');
-            recognition.stop();
-        }
-    });
+    if (elements.btnVoiceCommand) {
+        elements.btnVoiceCommand.addEventListener('click', () => {
+            elements.btnVoiceCommand.classList.toggle('active');
+            if (elements.btnVoiceCommand.classList.contains('active')) {
+                if (elements.voiceIndicator) {
+                    elements.voiceIndicator.classList.remove('hidden');
+                }
+                recognition.start();
+            } else {
+                if (elements.voiceIndicator) {
+                    elements.voiceIndicator.classList.add('hidden');
+                }
+                recognition.stop();
+            }
+        });
+    }
 
     recognition.onresult = (event) => {
         const speechResult = event.results[0][0].transcript;
