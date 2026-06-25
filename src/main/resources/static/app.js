@@ -1,6 +1,6 @@
 // Automatically point API calls to port 8080 if served from a different port (like Live Server)
 (function() {
-    const API_BASE = window.location.port === '8080' ? '' : 'http://localhost:8080';
+    const API_BASE = (window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') || window.location.port === '8080' ? '' : 'http://localhost:8080';
     const originalFetch = window.fetch;
     window.fetch = function(url, options) {
         if (typeof url === 'string' && url.startsWith('/api/')) {
